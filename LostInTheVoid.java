@@ -14,13 +14,17 @@ class LostInTheVoid extends Program{
     int température=40;
     int tailleEcran=70;
     int deg=6;
+
+    Quiz quizElec;
+    Quiz quizOxyg;
+    Quiz quizTemp;
     /////////////////////////////////////////////
     //////////////////Définition/////////////////
     /////////////////////////////////////////////
     void initQuestions(String fichierQuestions){
-        Quiz quizElec = newQuiz("ressources/questionsElec.csv");
-        Quiz quizOxyg = newQuiz("ressources/questionsOxyg.csv");
-        Quiz quizTemp = newQuiz("ressources/questionsTemp.csv");
+        quizElec = newQuiz("ressources/questionsElec.csv");
+        quizOxyg = newQuiz("ressources/questionsOxyg.csv");
+        quizTemp = newQuiz("ressources/questionsTemp.csv");
     }
     
     Quiz newQuiz(String nomFichier){
@@ -35,6 +39,7 @@ class LostInTheVoid extends Program{
         }
         return quiz;
     }
+
 
     Param setParametres(){
         Param param= new Param();
@@ -221,6 +226,7 @@ class LostInTheVoid extends Program{
         while(length(jauge)<10){
             jauge=jauge+"◻";
         }
+        jauge+="("+val+"/"+valmax+")";
         return jauge;
     }
 
@@ -252,15 +258,51 @@ class LostInTheVoid extends Program{
     /////////////////////////////////////////////
     ///////////////Mécaniques Jeu////////////////
     /////////////////////////////////////////////
+    boolean posQuiz(Quiz tabQuiz){
+        boolean correct = false;
+        
+        int num=tabQuiz.questionPrecedente;
+        while(num!=tabQuiz.questionPrecedente){
+            int num=(int)(random()*length(tabQuiz,1));
+        }
+        tabQuiz.questionPrecedente=num;
+        //stocke la questionif(equals(getCell(1),"QCM"))
+        String question = tabQuiz.quiz[num][0];
+        if(tabQuiz.quiz[num][0] == "QCM"){
+            do{
+                print(question + "\n\n\n");
+
+                //afficher les réponses
+                println("1) "+ tabQuiz.quiz[num][2]);            
+                println("2) " + tabQuiz.quiz[num][3]);
+                println("3) " + tabQuiz.quiz[num][4]);
+                println("4) " + tabQuiz.quiz[num][5]);
+                println("Choisissez votre réponse (1,2,3 ou 4)");
+                int saisie = readInt();
+            }while estChoixPossible();
+            
+            //on ajoute 1 pour le décalage dans le tableau des questions
+            saisie += 1;
+            if(equals(tabQuiz.quiz[num][6], tabQuiz.quiz[num][saisie])){
+                correct = true;
+            }        
+        }
+
+    }
+    
     void actionElec(Navette nav, Param param){
         if(nav.fatigue+20<100){
-            nav.fatigue=nav.fatigue+20;
-            println("Bravo, action Electrique choisie");
-            //MINIJEU
-            //IF REUSSI OU PAS REUSSI
-            nav.nivElec=nav.nivElec+10;
-            nav.nivTemp = nav.nivTemp-param.dégâts;
-            nav.nivOxy=nav.nivOxy-param.dégâts;
+            if(posQuiz(quizElec)){//IF REUSSI
+               nav.fatigue=nav.fatigue+20;
+                println("Bravo, action Chauffage choisie");
+                //MINIJEU
+                 
+                nav.nivElec=nav.nivElec+10;  
+            }else{//SI PAS REUSSI
+               println("Perdu ! c'était "+quizElec.quiz[quizElec.questionPrecedente][6]);
+            }
+           
+            
             verifNiveaux(nav);
         }else{
             print("Désolé, vous êtes trop  fatigué pour  faire cette action, Veuillez faire autre chose : ");
@@ -270,13 +312,17 @@ class LostInTheVoid extends Program{
 
     void actionOxy(Navette nav, Param param){
         if(nav.fatigue+20<100){
-            nav.fatigue=nav.fatigue+20;
-            println("Bravo, action Electrique choisie");
-            //MINIJEU
-            //IF REUSSI OU PAS REUSSI
-            nav.nivOxy=nav.nivOxy+10;
-            nav.nivTemp = nav.nivTemp-param.dégâts;
-            nav.nivElec=nav.nivElec-param.dégâts;
+            if(posQuiz(quizOxyg)){//IF REUSSI
+               nav.fatigue=nav.fatigue+20;
+                println("Bravo, action Oxygène choisie");
+                //MINIJEU
+                 
+                nav.nivOxy=nav.nivOxy+10;  
+            }else{//SI PAS REUSSI
+                println("Perdu ! c'était "+quizOxyg.quiz[quizOxyg.questionPrecedente][6]);
+            }
+           
+            
             verifNiveaux(nav);
         }else{
             print("Désolé, vous êtes trop  fatigué pour  faire cette action, Veuillez faire autre chose : ");
@@ -285,13 +331,17 @@ class LostInTheVoid extends Program{
 
     void actionChauff(Navette nav, Param param){
         if(nav.fatigue+20<100){
-            nav.fatigue=nav.fatigue+20;
-            println("Bravo, action Chauffage choisie");
-            //MINIJEU
-            //IF REUSSI OU PAS REUSSI
-            nav.nivTemp=nav.nivTemp+10;
-            nav.nivElec = nav.nivElec-param.dégâts;
-            nav.nivOxy=nav.nivOxy-param.dégâts;
+            if(posQuiz(quizTemp)){//IF REUSSI
+               nav.fatigue=nav.fatigue+20;
+                println("Bravo, action Chauffage choisie");
+                //MINIJEU
+                 
+                nav.nivTemp=nav.nivTemp+10;  
+            }else{//SI PAS REUSSI
+                println("Perdu ! c'était "+quizTemp.quiz[quizTemp.questionPrecedente][6]);;
+            }
+           
+            
             verifNiveaux(nav);
         }else{
             print("Désolé, vous êtes trop  fatigué pour  faire cette action, Veuillez faire autre chose : ");
@@ -331,12 +381,12 @@ class LostInTheVoid extends Program{
     void conséquenceBonusMalus(String rapport, BonusMalus BoM, Navette nav){
         bonusChoisi=(int)(random(length(BoM.casPossibles)));
         rapport+=BoM.casPossibles[bonusChoisi];
-        nav.nivElec+=stringToInt(random(BoM.impactMax[0][bonusChoisi]));
-        nav.nivOxy+=stringToInt(random(BoM.impactMax[1][bonusChoisi]));
-        nav.nivTemp+=stringToInt(random(BoM.impactMax[2][bonusChoisi]));
-        nav.perteElec+=stringToInt(random(BoM.perteMax[0][bonusChoisi]));
-        nav.perteOxy+=stringToInt(random(BoM.perteMax[1][bonusChoisi]));
-        nav.perteTemp+=stringToInt(random(BoM.perteMax[2][bonusChoisi]));
+        nav.nivElec+=stringToInt(BoM.impactMax[0][bonusChoisi]);
+        nav.nivOxy+=stringToInt(BoM.impactMax[1][bonusChoisi]);
+        nav.nivTemp+=stringToInt(BoM.impactMax[2][bonusChoisi]);
+        nav.perteElec+=stringToInt(BoM.perteMax[0][bonusChoisi]);
+        nav.perteOxy+=stringToInt(BoM.perteMax[1][bonusChoisi]);
+        nav.perteTemp+=stringToInt(BoM.perteMax[2][bonusChoisi]);
         
     }
     
@@ -374,6 +424,7 @@ class LostInTheVoid extends Program{
 
     void sceneMenuPrincipal(){
         int option = 0;
+        Param param=setParametres();
         String titre ="
         ██       ██████  ███████ ████████     ██ ███    ██     ████████ ██   ██ ███████     ██    ██  ██████  ██ ██████  \n
         ██      ██    ██ ██         ██        ██ ████   ██        ██    ██   ██ ██          ██    ██ ██    ██ ██ ██   ██ \n
@@ -400,7 +451,9 @@ class LostInTheVoid extends Program{
             sceneActuelle = Scene.PARAMETRES;
         } else if(option == 3){
             exec = false;
-        }    }
+        }    
+        
+    }
 
     void sceneParametres(){
         // Affichage en titre "paramètres"
@@ -410,7 +463,6 @@ class LostInTheVoid extends Program{
     }
 
     void sceneIntroduction(){
-        Param param=setParametres();
         Navette vaisseau=newNavette(param);
         print("À bord de quel vaisseau avez vous décollé ? :");
         vaisseau.nom=readString();
@@ -473,4 +525,4 @@ class LostInTheVoid extends Program{
         afficherActions(nav, 70);
         afficherNiveaux(nav, 50);*/
     }
-}
+} 
