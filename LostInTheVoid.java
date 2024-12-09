@@ -1,3 +1,5 @@
+import extensions.CSVFile;
+
 class LostInTheVoid extends Program{
     final int CLEAR = "\033[2J";
 
@@ -15,6 +17,25 @@ class LostInTheVoid extends Program{
     /////////////////////////////////////////////
     //////////////////Définition/////////////////
     /////////////////////////////////////////////
+    void initQuestions(String fichierQuestions){
+        Quiz quizElec = newQuiz("ressources/questionsElec.csv");
+        Quiz quizOxyg = newQuiz("ressources/questionsOxyg.csv");
+        Quiz quizTemp = newQuiz("ressources/questionsTemp.csv");
+    }
+    
+    Quiz newQuiz(String nomFichier){
+        CSVFile fichier = loadCSV(nomFichier);
+        Quiz tempQuiz = new Quiz();
+        tempQuiz.quiz[][] = new String[rowCount(fichier)][columnCount(fichier)];
+        
+        for(int i = 0; i < rowCount(fichier); i++){
+            for(int j = 0; j < columnCount(fichier); j++){
+                tempQuiz.quiz[i][j] = getCell(fichier, i, j);
+            }
+        }
+        return quiz;
+    }
+
     Param setParametres(){
         Param param= new Param();
         param.tailleEcran=tailleEcran;
@@ -22,10 +43,8 @@ class LostInTheVoid extends Program{
         param.nivTempInitial=température;
         param.nivElecInitial=elec;
         param.dégâts=deg;
-
-
-
     }
+
     Param setDifficulty(Param param){
         print("Voulez vous changer de difficulté ? (Oui/Non) :");
         String confirm=readString();
@@ -54,6 +73,7 @@ class LostInTheVoid extends Program{
         }
 
     }
+
     void setAffichage(Param param){
         print("Choisissez la taille des bulles qui vous seront affichées : ");
         println("taille minimale de 50, ici exemples de grandeurs : ");
@@ -66,13 +86,6 @@ class LostInTheVoid extends Program{
             taille=readdInt();
         }
         param.tailleEcran=taille;
-    }
-    Quiz newQuiz(String[] fichier1, String[] fichier2){ //quiz sur .csv peut-être
-        Quiz quiz= new Quiz();
-        quiz.questions=fichier1;
-        quiz.réponses=fichier2;
-        return quiz;
-
     }
     
     Navette newNavette(Param param){
@@ -89,6 +102,19 @@ class LostInTheVoid extends Program{
         return nav;
     }
 
+    int stringToInt(String chaine){
+        int puissance =1;
+        int entier=0;
+        for(int i=0; i<length(chaine);i=i+1){
+            entier=entier+puissance*(int)(charAt(chaine,length(chaine)-i-1)-'0');
+            puissance=puissance*10;
+        }
+        return entier;
+    }
+    
+    boolean estChoixPossible(int minchoix, int maxchoix, int choix){
+        return ((choix>minchoix)&&(choix<maxchoix));
+    }
     /////////////////////////////////////////////
     ///////////////AFFICHAGE BULLES//////////////
     /////////////////////////////////////////////
@@ -159,7 +185,7 @@ class LostInTheVoid extends Program{
 
     }
 
-    void afficherBulle(String texte, Param param){
+    void afficherBulle(String texte, Param param, int suppTaille){
         String[] decomp=décompenLigne(texte,param.tailleEcran);
         int L=length(decomp);
         créerLigne('-',param.tailleEcran);
@@ -176,19 +202,19 @@ class LostInTheVoid extends Program{
     /////////////AFFICHAGE INTERFACE/////////////
     /////////////////////////////////////////////
 
-    void afficherNiveaux(Navette nav,int tailleBulle){
+    void afficherNiveaux(Navette nav,Param param){
         créerLigne('-',tailleBulle);
-        print(Remplissage("    Oxygène :"+ANSI_BLUE+créerJauge(nav.nivOxy)+ANSI_RESET,tailleBulle+2*length(ANSI_RESET)+1));
-        print(Remplissage("    Energie :"+ANSI_YELLOW+créerJauge(nav.nivElec)+ANSI_RESET,tailleBulle+2*length(ANSI_RESET)+1));
-        print(Remplissage("Température :"+ANSI_RED+créerJauge(nav.nivTemp)+ANSI_RESET,tailleBulle+2*length(ANSI_RESET)+1));
-        /// Température : ◼◼◼◼◼◻◻◻◻◻ (100/200 %)
+        print(Remplissage("    Oxygène :"+ANSI_BLUE+créerJauge(nav.nivOxy,nav.nivOxyMAX)+param,2*length(ANSI_RESET)+1));
+        print(Remplissage("    Energie :"+ANSI_YELLOW+créerJauge(nav.nivElec, nav.nivElecMAX)+ANSI_RESET,param,2*length(ANSI_RESET)+1));
+        print(Remplissage("Température :"+ANSI_RED+créerJauge(nav.nivTemp, nav.nivTempMAX)+ANSI_RESET,param,2*length(ANSI_RESET)+1));
+        /// Température : ◼◼◼◼◼◻◻◻◻◻ (100/200 %)    
         créerLigne('-',tailleBulle);
         
     }
 
-    String créerJauge(int val){
+    String créerJauge(int val, int valmax){
         String jauge="";
-        int valr=val/10;
+        int valr=10*val/valmax;
         for(int i=0; i<valr; i=i+1){
             jauge=jauge+"◼";
         }
@@ -198,24 +224,31 @@ class LostInTheVoid extends Program{
         return jauge;
     }
 
-    void afficherActions(Navette nav,int tailleBulle){
+    void afficherActions(Navette nav,Param param, int heureActuelle,boolean[][] event, BonusMalus B, BonusMalus M, ){
         //renommer les actions et en ajouter d'autres
-        afficherBulle("Veuilez choisir l'action à mener :\n 1.Oxygène\n 2.Electrique\n 3.Chauffage\n",tailleBulle);
+        afficherBulle("Veuilez choisir l'action à mener :\n 1.Oxygène\n 2.Electrique\n 3.Chauffage\n 0.Repos",param,0);
         int act;
         do{
             act=readInt();
             if(act==1){
-                actionOxy(nav);
+                actionOxy(nav, param);
             }else if(act==2){
-                actionElec(nav);
+                actionElec(nav, param);
             }else if(act==3){
-                actionChauff(nav);
-            }else{
-                println("Erreur.");
+                actionChauff(nav, param);
+            }else if(act==0){
+                print("Combien d'heures voulez vous vous reposer ? :");
+                int tempsRepos=readInt();
+                repos(nav,event,B,M,tempsRepos,heureActuelle);
             }
-        }while((act<1)||(act>3));
+        }while(estChoixPossible(0,3));
     }
+    void afficherInterface(Navette nav, Param param){
+        afficherBulle(nav.nom+" - Heure "+heure+" : ",param,0);
+        afficherNiveaux(nav,param);
+        afficherActions(nav,param);
 
+    }
     /////////////////////////////////////////////
     ///////////////Mécaniques Jeu////////////////
     /////////////////////////////////////////////
@@ -235,7 +268,7 @@ class LostInTheVoid extends Program{
         
     }
 
-    void actionOxy(Navette nav){
+    void actionOxy(Navette nav, Param param){
         if(nav.fatigue+20<100){
             nav.fatigue=nav.fatigue+20;
             println("Bravo, action Electrique choisie");
@@ -250,7 +283,7 @@ class LostInTheVoid extends Program{
         }
     }
 
-    void actionChauff(Navette nav){
+    void actionChauff(Navette nav, Param param){
         if(nav.fatigue+20<100){
             nav.fatigue=nav.fatigue+20;
             println("Bravo, action Chauffage choisie");
@@ -264,6 +297,7 @@ class LostInTheVoid extends Program{
             print("Désolé, vous êtes trop  fatigué pour  faire cette action, Veuillez faire autre chose : ");
         }
     }
+    
     void verifNiveaux(Navette nav){
         if(nav.nivElec>=nav.nivElecMAX){
             niv.nivElec=nav.nivElecMAX;
@@ -275,6 +309,7 @@ class LostInTheVoid extends Program{
             niv.nivTemp=nav.nivTempMAX;
         }
     }
+
     boolean[][] initialiserBonusMalus(Param param){// les event[0][i] représentent les bonus, les event[1][i] les malus
         boolean[][] event = new boolean[2][param.nTours];
         int pM;
@@ -292,38 +327,43 @@ class LostInTheVoid extends Program{
         return event;
 
     }
+
     void conséquenceBonusMalus(String rapport, BonusMalus BoM, Navette nav){
         bonusChoisi=(int)(random(length(BoM.casPossibles)));
         rapport+=BoM.casPossibles[bonusChoisi];
-        nav.nivElec+=(int)(random(BoM.impactMax[0][bonusChoisi]));
-        nav.nivOxy+=(int)(random(BoM.impactMax[1][bonusChoisi]));
-        nav.nivTemp+=(int)(random(BoM.impactMax[2][bonusChoisi]));
-        nav.perteElec+=(int)(random(BoM.perteMax[0][bonusChoisi]));
-        nav.perteOxy+=(int)(random(BoM.perteMax[1][bonusChoisi]));
-        nav.perteTemp+=(int)(random(BoM.perteMax[2][bonusChoisi]));
+        nav.nivElec+=stringToInt(random(BoM.impactMax[0][bonusChoisi]));
+        nav.nivOxy+=stringToInt(random(BoM.impactMax[1][bonusChoisi]));
+        nav.nivTemp+=stringToInt(random(BoM.impactMax[2][bonusChoisi]));
+        nav.perteElec+=stringToInt(random(BoM.perteMax[0][bonusChoisi]));
+        nav.perteOxy+=stringToInt(random(BoM.perteMax[1][bonusChoisi]));
+        nav.perteTemp+=stringToInt(random(BoM.perteMax[2][bonusChoisi]));
         
     }
+    
     String perteRepos(Navette nav, int heure){
         nav.nivElec-=nav.perteElec;
         nav.nivOxy-=nav.perteOxy;
         nav.nivTemp-=nav.perteTemp;
-        return "Heure "+heure+" : Vous avez perdu "+nav.perteElec+" unités d'électricité, "+nav.perteOxy+" unités d'oxygène et "+nav.perteTemp+" unités de température";
+        return "Heure "+heure+" : Vous avez perdu "+ANSI_YELLOW+nav.perteElec+ANSI_RESET+" unités d'électricité, "+ANSI_BLUE+nav.perteOxy+ANSI_RESET+" unités d'oxygène et "+ANSI_RED+nav.perteTemp+ANSI_RESET+" unités de température";
     }
-    void repos(Navette nav, boolean[][] event, BonusMalus B, BonusMalus M, int tempsRepos, int heureActuelle){ //Catégorie BonusMalus charge un tableau avec les différents évenements possinbbles
-        String nouvelles="Rapport des incidents : ";
-        for(int i=0; i<tempsRepos; i=i+1){
+    
+    String repos(Navette nav, boolean[][] event, BonusMalus B, BonusMalus M, int tempsRepos, int heureActuelle){ //Catégorie BonusMalus charge un tableau avec les différents évenements possinbbles
+        String nouvelles="Rapport des incidents : "+'\n';
+        int h=heureActuelle;
+        while((h<heureActuelle+tempsRepos)&&!VaisseauDetruit(nav)){
             if(event[0][i]){
-                nouvelles+=ANSI_GREEN+"Heure "+heureActuelle+" : "+ANSI_RESET;
+                nouvelles+=" "+ANSI_GREEN+"Heure "+heureActuelle+" : "+ANSI_RESET;
                 conséquenceBonusMalus(nouvelles,B,nav);
 
             }else if(event[1][i]){
-                nouvelles+=ANSI_RED+"Heure "+heureActuelle+" : "+ANSI_RESET;
+                nouvelles+=" "+ANSI_RED+"Heure "+heureActuelle+" : "+ANSI_RESET;
                 conséquenceBonusMalus(nouvelles,M,nav);
             }
-            println(perteRepos(tempsRepos,nav));
+            nouvelle=nouvelle+perteRepos(nav,heureActuelle)+'\n';
         }
+        return nouvelles;
     }
-    }
+    
     boolean VaisseauDetruit(Navette nav){
         return ((nav.nivOxy<=0)||(nav.nivElec <=0)||(nav.nivTemp <=0));
     }
@@ -349,9 +389,9 @@ class LostInTheVoid extends Program{
             } else{
                 println("\nChoisissez une option\n");
             }
-            afficherBulle(optionsMenu, 70);
+            afficherBulle(optionsMenu, param,0);
             option = readInt();
-        } while!(option == 1 || option == 2 || options == 3);
+        } while!(estChoixPossible(1,3));
 
         //On change de scène selon la saisie
         if(option == 1){
@@ -370,19 +410,34 @@ class LostInTheVoid extends Program{
     }
 
     void sceneIntroduction(){
-        // Affichage introduction
+        Param param=setParametres();
+        Navette vaisseau=newNavette(param);
+        print("À bord de quel vaisseau avez vous décollé ? :");
+        vaisseau.nom=readString();
+        // paragraphes de l'introduction avec des images ASCII
+        // saisie pour passer un paragraphe
+        sceneActuelle = Scene.JEU;// après que tout les paragraphes de l'info soient passés, le joueur passe à la scéne "JEU"
     }
 
     void sceneJeu(){
-        // Afficher heure - description (journal de bord)
+        
+        int heure=1;
+        int objectif= param.duréeJeu;
+        Navette nav= newNavette(param);
+        boolean BonusMalus=initialiserBonusMalus(param);
+        while(!VaisseauDetruit(nav)||(heure<=objectif)){
+        afficherInterface(nav,param);// Afficher heure - description (journal de bord)+Afficher les jauges des ressources+Actions
+        
         afficherBulle()
-        // Afficher les jauges des ressources
-        // Actions
+        // 
+        // 
         // Saisie utilisateur
         // Clear
+        }
+        sceneActuelle=Scene.GAMEOVER
     }
 
-    void sceneGameOver(boolean perdu){
+    void sceneGameOver(){
         if(VaisseauDetruit(nav)){
             //Défaite
         }else{
@@ -392,7 +447,8 @@ class LostInTheVoid extends Program{
     }
     
     void algorithm(){
-        Param init= new
+        initQuestions();
+
         while(exec){
             if(sceneActuelle == Scene.MENU){
                 sceneMenuPrincipal();
@@ -403,7 +459,7 @@ class LostInTheVoid extends Program{
             } else if(sceneActuelle == Scene.JEU){
                 sceneJeu();
             } else if(sceneActuelle == Scene.GAMEOVER){
-                sceneGameOver(true);
+                sceneGameOver();
             }
         }
         // sortie de la boucle -> on quitte le jeu
@@ -413,8 +469,8 @@ class LostInTheVoid extends Program{
         Navette nav= newNavette(init);
         afficherNiveaux(nav,50);
         String texte="Bonjour.\n \n Et bienvenue dans ce périple au travers de Lost In the Void.\n Lost in the Void est un jeu de survie textuel dans lequel le joueur incarne un astronaute à bord d'un vaisseau spatial endommagé après une collision avec un astéroïde.\n \n Le joueur doit stabiliser le vaisseau tout en gérant des ressources comme l'oxygène, l'énergie et la chaleur, qui diminuent à chaque heure virtuelle, jusqu'à l'arrivée du vaisseau à son point de destination.\n Chaque heure, le joueur doit prendre des décisions cruciales et résoudre des mini-jeux (logique, science, informatique…) pour maintenir le vaisseau fonctionnel et progresser dans la réparation du vaisseau, faisant de ce jeu une aventure éducative immersive et engageante.\n";
-        afficherBulle(texte, 70);
+        /*afficherBulle(texte, 70);
         afficherActions(nav, 70);
-        afficherNiveaux(nav, 50);
+        afficherNiveaux(nav, 50);*/
     }
 }
