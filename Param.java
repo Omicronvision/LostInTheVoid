@@ -1,12 +1,13 @@
 class Param{
-    int difficulté;
+    int difficulte;
     int nivOxyInitial;
     int nivElecInitial;
     int nivTempInitial;
-    int dégâts;
+    int degats;
     int tailleEcran;
     int nTours;
     int probaMalus;
     int probaBonus;
-
+    int duréeJeu;
+    int perteInit;
 }
