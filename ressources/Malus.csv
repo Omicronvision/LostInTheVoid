@@ -1,0 +1,4 @@
+Chaine description, effetOxy, effetElec, EffetTemp, PerteOxy, perteElec,perteTemp
+Un mini-astéroïde a percuté la coque de votre vaisseau,0,-4,0,0,0,0
+un court-circuit a été causé par un câble en mauvais état, 0,0,0,0,-1,0
+une brèche dans la coque a été ouverte,-2,0,0,-1,0,0

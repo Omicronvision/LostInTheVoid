@@ -1,7 +1,7 @@
-QCM,Que se passe-t-il lorsque deux ampoules sont connectées en série ?,L'intensité du courant est divisée par deux.,La tension totale est répartie entre les 2 ampoules.,Les ampoules s’éclairent deux fois plus fort.,L’intensité change en fonction de la puissance de la pile.
-QCM,Un circuit est dit fermé lorsque :,Le courant circule.,Le courant est bloqué.,La lampe est débranchée.,La tension est nulle.
-QCM,Quelle est la formule de la loi d’Ohm ?,U=R×I,R=U+I,I=R/U,U=I+R
-QCM,Qu’arrive-t-il à l’intensité du courant si la résistance du circuit augmente et que la tension reste constante ?,Elle augmente.,Elle diminue.,Elle reste inchangée.,Elle s’inverse.
-QCM,Quelle unité est utilisée pour mesurer la résistance électrique ?,Le volt (V),L’ampère (A),L’ohm (Ω),Le watt (W)
-QCM,Lequel de ces matériaux est un bon conducteur d’électricité ?,Le plastique,Le verre,Le cuivre,Le bois
-QCM,La puissance électrique est donnée par la relation :,P=U/I,P=U×I,P=R×U,P=I/U
+QCM,Que se passe-t-il lorsque deux ampoules sont connectées en série ?,L'intensité du courant est divisée par deux.,La tension totale est répartie entre les 2 ampoules.,Les ampoules s’éclairent deux fois plus fort.,L’intensité change en fonction de la puissance de la pile.,La tension totale est répartie entre les 2 ampoules.
+QCM,Un circuit est dit fermé lorsque :,Le courant circule.,Le courant est bloqué.,La lampe est débranchée.,La tension est nulle.,Le courant circule.
+QCM,Quelle est la formule de la loi d’Ohm ?,U=R×I,R=U+I,I=R/U,U=I+R,U=R×I
+QCM,Qu’arrive-t-il à l’intensité du courant si la résistance du circuit augmente et que la tension reste constante ?,Elle augmente.,Elle diminue.,Elle reste inchangée.,Elle s’inverse.,Elle diminue.
+QCM,Quelle unité est utilisée pour mesurer la résistance électrique ?,Le volt (V),L’ampère (A),L’ohm (Ω),Le watt (W),L’ohm (Ω)
+QCM,Lequel de ces matériaux est un bon conducteur d’électricité ?,Le plastique,Le verre,Le cuivre,Le bois,Le cuivre
+QCM,La puissance électrique est donnée par la relation :,P=U/I,P=U×I,P=R×U,P=I/U,P=U×I
